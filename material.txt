@@ -1,1 +1,3 @@
 https://machinelearningmastery.com/introduction-to-time-series-forecasting-with-python/
+https://medium.com/@ODSC/machine-learning-for-time-series-data-e3971d38005b
+https://machinelearningmastery.com/time-series-forecasting-supervised-learning/
