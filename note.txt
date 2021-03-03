@@ -1,0 +1,136 @@
+﻿* công việc trong tuần qua:
+
+phân tích dataset của project polution_prediction
+	- cột pm2.5 có mối liên hệ với những cột dewp, temp, lws, lr, ls
+		+ cột tỉ lệ thuận với cột pm2.5: dewp, temp, lws
+			. độ ẩm trong không khí càng cao thì lượng bụi mịn pm2.5 sẽ càng lớn
+			.	công thức tính độ ẩm tương đối: 100 - 5(temp - dewp)
+			. do gió mang theo bụi nên tốc độ gió càng cao thì bụi từ nơi khác sẽ mau chóng được thổi vào và tích tụ lại ở Bắc Kinh
+		+ cột tỉ lệ nghịch với cột pm2.5: lr, ls
+			. mưa và tuyết càng lâu thì càng giảm khả năng bụi lơ lửng trong không khí
+
+* công việc tuần tiếp theo:
+	+ phân tích kĩ hơn dataset của project polution_prediction
+
+	temp / dewp * 100
+
+	correlation
+
+
+	- fill NaN data bằng giá trị trung bình của cột pm2.5, sử dụng
+		mean = df['pm2.5'].mean() -> giá trị trung bình
+		df['pm2.5'].fillna(mean, inplace=True) -> thay Na bằng giá trị trung bình
+
+
+	* note ngày 24/8/2020
+		- phần clean data
+			- missing data:
+				+ xóa NaN thì được điểm cao hơn fill NaN bằng mean
+			- thêm cột Hum (humidity) được điểm cao hơn
+		- chọn model:
+			+ Linear Regression (điểm tối đa hiện tại là 0.2759)
+
+	- xóa na  						:0.2759119085403521
+	- điền na bằng mean   :0.26156583265943256
+	- điền na bằng mx occ :0.2527344731536404
+	- xóa dewp: 0.2552864927271018
+							0.2528562259697782
+
+	- xóa NaN, xóa pm2.5 trên 600, label encoding, thêm cột humidity: 0.278037818583428
+
+	* các cách clean data
+		- gộp hàng
+		- dùng KNN (K-nearest neighbor)
+		- Suy luận Bayes
+		- loại bỏ outlayer (những giá trị ngoại lệ (biên, ngoài vùng tập trung))
+	- Clean data theo insights (thêm những cột thấy hợp lí)
+
+- dùng decision tree regressor	
+
+- chấm điểm model bằng r2_score với bộ test
+
+- các cách xử lý data continous: 
+	https://www.analyticsvidhya.com/blog/2015/11/8-ways-deal-continuous-variables-predictive-modeling/
+- correlation: https://machinelearningmastery.com/how-to-use-correlation-to-understand-the-relationship-between-variables/
+
+https://github.com/robertritz/Ulaanbaatar-PM2.5-Prediction/blob/master/Ulaanbaatar%20PM2.5%20Prediction%20-%20Regression.ipynb
+
+- mean absolute error sum(|actual - predict|) -> mean
+https://medium.com/@contactsunny/label-encoder-vs-one-hot-encoder-in-machine-learning-3fc273365621
+
+- điền NaN bằng giá trị trước đó vài giờ
+
+- tạo thêm cột pm2.5_prev1h, pm2.5_prev2h, pm2.5_prev3h ..., data của giờ hiện tại được tổng hợp từ những data của giờ trước đó
+
+- lần build thứ 1
+	- label encoding
+	- deal missing data
+		+ điền nan bằng mean(trung bình), median(chính giữa) [1, 2, 3, 4, 9, 10] -> 4
+		+ điền bằng giá trị xuất hiện nhiều nhất, giá trị lớn nhất, nhỏ nhất
+		-> 0.21
+		+ xóa nan
+		-> 0.25
+	- linear regression
+
+- lần build thứ 2
+	- label encoding
+	- deal missing data
+		+ xóa nan
+	- thêm cột ở ngoài
+		+ hum (humidity: độ ẩm)
+	-> 0.27
+	- linear regression
+
+- lần build 3:
+	- label encoding
+	- deal missing data
+		+ xóa nan
+	- thêm cột ở ngoài
+		+ hum (humidity: độ ẩm)
+	- linear regression: 0.27
+	- decision tree regression: 0.97 (train) -> vô nghĩa, (test) -> (-) pattern
+	- random forest regression: 0.87
+	 -> sử dụng bộ test cho model
+	 	+ linear regression: (-)
+	 	+ decision tree regression: (-)
+		+ random forest regression: (-)
+		-> overfitting
+
+ - lần build thứ 3.5:
+ 	- label encoding
+	- deal missing data
+		+ xóa nan
+	- thêm cột ở ngoài
+		+ hum (humidity: độ ẩm)
+	- linear regression: (k để nói)
+	- decision tree regression: 0.6 -> score (train) (có nghĩa), (test) -> 0.3 -> pattern
+	- random forest regression: n_estimator: 200 -> 0.2, (-) -0.0001
+
+ - lần build thứ 4:
+ 	- label encoding cbwd
+	- deal missing data
+		+ xóa nan -> không xóa nan
+		+ điền nan bằng giá trị không phải nan trước đó
+	- thêm cột ở ngoài
+		+ thứ (sun, mon, tue, wed, thu, fri, sat) -> mã hóa (label encoding)
+		+ hum (humidity: độ ẩm)
+	- linear regression: (-)
+	- decision tree regression:  -> (-)
+	- random forest regression: 0.3...
+	- neural network: 0.5
+
+ - lần build thứ 5:
+ 	- label encoding (NE, NS, SE, cb) -> (0, 1, 2, 3)
+	- deal missing data
+		+ điền nan bằng giá trị không phải nan trước đó -> xóa nan không có giá trị trước đó
+	- outliers
+	- thêm cột ở ngoài
+		+ thứ (sun, mon, tue, wed, thu, fri, sat) -> mã hóa (label encoding) (0, 1, 2, 3, 4, 5, 6)
+		+ hum (humidity: độ ẩm)
+		+ thêm những cột từ data trước đó (data quá khứ) [pm2.5, temp, dewp, cbwd, iws]
+			+ xóa nan của những cột đó
+	- Build model
+		- linear regression: 				0.9419233060878571 / 1.0 -> pattern, data đã clean
+		- decision tree regression: 0.9301412478775734 
+		- random forest regression: 0.9426731012176124
+		- neural network: 					0.9473056168943031
